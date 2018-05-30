@@ -1,3 +1,3 @@
-# slackbbot
+# slackbot
 
 * Under construction.
