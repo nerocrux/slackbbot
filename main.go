@@ -1,22 +1,34 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/nlopes/slack"
 )
+
+// TODO
+const channelID = "C02EFSW4Y"
 
 type SlackAttachment struct {
 	Pretext string
 	Text    string
 }
 
-const SlackBotToken = "<Slack Bot Token>"
+type Input struct {
+	Text string `json:"text"`
+}
+
+type SendMessage interface {
+	Send(arg string) string
+}
 
 // Send -- execute shell command
-func send(slackAttachment SlackAttachment, message string, channelID string) string {
-	api := slack.New(SlackBotToken)
+func Send(slackAttachment SlackAttachment, message string, channelID string) string {
+	api := slack.New(os.Getenv("SLACK_TOKEN"))
 	params := slack.PostMessageParameters{AsUser: true}
 	attachment := slack.Attachment{
 		Pretext: slackAttachment.Pretext,
@@ -30,9 +42,16 @@ func send(slackAttachment SlackAttachment, message string, channelID string) str
 	return fmt.Sprintf("Message successfully sent to channel %s at %s", channelName, timestamp)
 }
 
-func request() (string, error) {
-	log := send(SlackAttachment{Pretext: "Pretext", Text: "Dummy Pretext Text"}, "This is a test.", "<Channel ID>")
-	return log, nil
+func execute(text string) {
+	command := string(text[5:])
+	if strings.Contains(command, "/music") {
+		ProcessSearchAppleMusicEvent(command, channelID)
+	}
+}
+
+func request(ctx context.Context, input Input) {
+	execute(input.Text)
+	//log := send(SlackAttachment{Pretext: "Pretext", Text: "Dummy Pretext Text"}, fmt.Sprintf("Hello %s!!", text), "C02EFSW4Y")
 }
 
 func main() {

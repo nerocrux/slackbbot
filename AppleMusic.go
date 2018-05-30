@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/nlopes/slack"
@@ -80,11 +82,20 @@ func SearchAppleMusic(keyword string) *AppleMusicResults {
 }
 
 // ProcessSearchAppleMusicEvent -- entry for search apple music event
-func ProcessSearchAppleMusicEvent(ev *slack.MessageEvent) {
-	keyword := strings.Replace(ev.Msg.Text, fmt.Sprintf("%s /music ", ToBotID), "", -1)
+func ProcessSearchAppleMusicEvent(command string, channelID string) {
+	keyword := strings.Replace(command, "/music ", "", -1)
 	result := SearchAppleMusic(strings.Replace(keyword, " ", "+", -1))
 	for _, r := range result.Results {
 		single := fmt.Sprintf("Artist: %s\nAlbum: %s\nRelease Date: %s\nListen on Apple Music: %s", r.ArtistName, r.CollectionName, r.ReleaseDate, r.CollectionViewUrl)
-		rtm.SendMessage(rtm.NewOutgoingMessage(single, ev.Channel))
+		//rtm.SendMessage(rtm.NewOutgoingMessage(single, channel))
+
+		// TODO
+		api := slack.New(os.Getenv("SLACK_TOKEN"))
+		params := slack.PostMessageParameters{AsUser: true}
+		channelName, timestamp, err := api.PostMessage(channelID, single, params)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Message successfully sent to channel %s at %s", channelName, timestamp)
 	}
 }
