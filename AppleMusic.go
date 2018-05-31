@@ -91,7 +91,7 @@ func ProcessSearchAppleMusicEvent(command string, channelID string) {
 
 		// TODO
 		api := slack.New(os.Getenv("SLACK_TOKEN"))
-		params := slack.PostMessageParameters{AsUser: true}
+		params := slack.PostMessageParameters{AsUser: true, UnfurlLinks: true, UnfurlMedia: true}
 		channelName, timestamp, err := api.PostMessage(channelID, single, params)
 		if err != nil {
 			log.Fatal(err)
